@@ -6,9 +6,10 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..24\n"; }
+BEGIN { $| = 1; print "1..26\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Vpp;
+use Config;
 $loaded = 1;
 print "ok 1\n";
 
@@ -373,6 +374,9 @@ Here is pi : 3.14159265358979 !
   Madison  in  Michigan or in Perl City or in elsewhere
   008
 EOExp
+
+#' ; # for xemacs
+
 $ret = $fin -> substitute() ;
 
 if ($ret)
@@ -440,3 +444,48 @@ else
 	"got   \n---\n",$res,   "---\n";
   }
 
+# test shell stuff
+$expect='test shell stuff on unix only
+1rst test
+test.pl
+text_shell.txt
+
+2nd test
+Vpp.pm
+
+3rd test
+Vpp.pm
+text_shell.txt
+';
+
+if ($Config{osname} ne 'win32')
+  {
+    $fin = new Text::Vpp("text_shell.txt");
+    $ret = $fin -> substitute() ;
+    if ($ret)
+      {
+        print "ok 25\n";
+      }
+    else
+      {
+	print "not ok 25\n";
+	print @{$fin->getErrors()} ;
+      }
+
+    $res = join("\n",@{$fin->getText()})."\n" ;
+
+    if ($res eq $expect)
+      {
+	print "ok 26\n";
+      }
+    else
+      {
+	print "not ok 26\n",
+          "expect\n---\n",$expect,"---\n",
+            "got   \n---\n",$res,   "---\n";
+      }
+  }
+else
+  {
+    print "skip 25\nskip 26\n";
+  }

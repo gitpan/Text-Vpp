@@ -89,109 +89,7 @@ Note that vpp is not designed to replace the well known cpp.
 
 =head1 INPUT FILE SYNTAX
 
-=head2 Comments
-
-All lines beginning with '#' are skipped. (May be changed with 
--comment option)
-
-=head2 in-line perl eval
-
-Lines beginning with '@EVAL' (@ being pompously named the 'action char') 
-are evaluated as small perl script. 
-If a line contains (multiple) @@ Perl-Expression @@ constructs these
-are replaced by the value of that Perl-Expression.
-To call one of the methods of a Vpp-object, like setActionChar, this
-has to called as  "${self}-E<gt>setActionChar('@');"
-Be sure you know what you do, if you call such methods from within
-an @EVAL line.
-
-When -comment is used with '#' as a parameter, Vpp doesn't 
-skip lines beginning with '#'. In this case, there's no comment possible.
-
-=head2 Multi-line input
-
-Line ending with \ are concatenated with the following line.
-
-=head2 Variables substitution
-
-You can specify in your text variables beginning with $ (like in perl,
-but may be changed with the -prefix option) and optionally ending
-in a Suffix which can be specified by the -suffix option.
-These variables can be set either by the -var option, the -varFile option or
-by the "eval" capability of Vpp (See below).
-
-To use more complicated variables like hash or array accesses you have to
-use either the 'in-line eval' above or a cheaper and more convenient
-method. For that you can 'QUOTE' lines like
-@QUOTE
-any lines
-@ENDQUOTE
-
-or
-@QUOTE ( ListPrefix [,ListSeparator] )
-any lines
-@ENDQUOTE
-
-In both cases the lines after the '@QUOTE' line upto but not including
-the @ENDQUOTE line are concatenated still keeping the end-of-line character(s).
-In the resulting string all '$' are protected unless $prefix or $suffix
-or $ListPrefix contains a '$'. Furthermore all '@' are protected unless
-one of these variables contains a '@'. Then all variables (defined by 
-$prefix/$suffix) are preprocessed to make them ready for substitution lateron.
-Likewise ListPrefix (if given) is converted to '@'.
-Then this possible multiline construct is quoted by Perl's 'qq' and given
-to Perl's eval. Therefore any constructs which interpolate in a double quoted
-string, will interpolate here too, i.e. variable starting with '$' or
-'@' (unless protected, see above) and all characters escaped by '\'.
-Note the standard trick to interpolated everything within a double quoted
-string by using the anonymous array construct  "  @{[expression]}  ".
-The ListSeparator is used to locally set Perl's variable '$"' (or
-$LIST_SEPARATOR in module English.pm).
-You can take any delimiting character but not brackets of any sort
-to delimit either ListPrefix or ListSeparator .
-
-
-
-=head2 Setting variables
-
-Lines beginning by @ are "evaled" using variables defined by -var or -varFile.
-You can use only scalar variables. This way, you can also define variables in 
-your text which can be used later.
-
-=head2 Conditional statements
-
-vpp understands
-@IF, @ELSIF, @ENDIF,and so on.
-@INCLUDE and @IF can be nested.
-
-@IF and @ELSIF are followed by a string which will be evaled using
-the variable you defined (either with -var or -varFile or in an @EVAL line).
-
-=head2 Loop statements
-
-vpp understands
-
-@FOREACH $MyLoopVar ( Perl-List-Expression )
-... (any) lines which may depend on $MyLoopVar
-@ENDFOR
-
-These may be nested.
-
-=head2 Inclusion
-
-vpp understands
-@INCLUDE  'Filename' or Perl-Expression
-@INCLUDE { action => '\\', backslash => 0, file => 'add_on.001' }
-
-If the Perl-Expression is a string, it is taken as a
-filename. If it is an anonymous hash, it must have a value
-for the key 'file' and it may have values for 'action',
-'comment', 'prefix', 'suffix', 'substitute' and 'backslash'.
-If given these override the current values (only) when the
-included file is processed.
-
-Note that the file name B<must> be quoted.
-
+See L<Text::Vpp/"INPUT FILE SYNTAX">.
 
 =head1 command options
 
@@ -285,12 +183,12 @@ ksh). Once this method is called '\' will be left as is.
 
 Dominique Dumont    Dominique_Dumont@grenoble.hp.com
 
-Copyright (c) 1996-1998 Dominique Dumont. All rights reserved.  This
+Copyright (c) 1996-2001 Dominique Dumont. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-perl(1), Text::Vpp(3)
+L<perl>, L<Text::Vpp>
 
 =cut

@@ -23,6 +23,7 @@ You might want to use Text::Vpp instead of cpp if :
 - want to keep /* ... */ in your file
 - cpp doesn't like your text.
 - you are allergic to cpp
+- want to include shell or perl code output in your text
 
 You might also want to use Text::Vpp instead of m4 if :
 - you can't find the m4 macro to do what you want

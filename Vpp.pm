@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.22 2001/02/22 12:50:23 domi Exp $
+# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.25 2001/04/24 13:57:24 domi Exp $
 #
 # $Source: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.22 $
+# $Revision: 1.25 $
 # $Locker:  $
 # 
 ############################################################
@@ -18,7 +18,7 @@ use Carp ;
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = '1.14' ;
+$VERSION = '1.15' ;
 
 # tiny FiFo "package"
 
@@ -198,6 +198,17 @@ sub Vpp_Out {
 
 our $VAR;
 
+sub do_shell
+  {
+    my $self=shift;
+    my $shell_code = shift;
+    my $out= `$shell_code`;
+    warn "Error in SHELL code : status is $? \n",
+      "in file: $self->{name} line $.\n",
+        "code was\n$shell_code"  if  $? > 0;
+    Vpp_Out($out) ;
+  }
+
 sub processBlock 
   {
 	# three parameters :
@@ -209,7 +220,7 @@ sub processBlock
     
     my $out = [] ;
     my $Put_Output_Sub_Save;
-    $Put_Output_Sub= sub { push @$out,@_; };
+    $Put_Output_Sub= sub { my @a = @_; chomp @a ; push @$out,@a; };
     
     # Done is used to evaluate the elsif
     my ($done) = $expand ;
@@ -223,7 +234,11 @@ sub processBlock
     my $Within_Perl_Input = 0;
     my $Perl_Input_Termination;
     my $Perl_Code;
-        
+
+    my $Within_Shell_Input = 0;
+    my $Shell_Input_Termination;
+    my $Shell_Code;
+
     # attention: keep the following declaration in sync with
     #            the assignments whence processing 'EVAL' line
     my $action    = $self->{action} ;
@@ -248,6 +263,7 @@ sub processBlock
     my $foreachPat = $self->{foreachPat};
     my $endforPat  = $self->{endforPat};
     my $perlPat    = $self->{perlPat};
+    my $shellPat  = $self->{shellPat};
        $VAR        = $self->{var};
     
     if ( $useFiFo )
@@ -276,6 +292,17 @@ sub processBlock
           }
           next;
         }
+
+        if ( $Within_Shell_Input ) {
+          if ( $line =~ /$Shell_Input_Termination/ ) {
+            $Within_Shell_Input= 0;
+            $self->do_shell($Shell_Code) if ( $expand );
+          } else {
+            $Shell_Code.= $line;
+          }
+          next;
+        }
+
         chomp($line);
         #skip commented lines
         next if (defined $commentPat and $line =~ $commentPat);
@@ -509,6 +536,7 @@ sub processBlock
             $foreachPat = $self->{foreachPat};
             $endforPat  = $self->{endforPat};
             $perlPat    = $self->{perlPat};
+            $shellPat  = $self->{shellPat};
             $VAR        = $self->{var};
           }
         elsif ($lineIn =~ s/$perlPat//)
@@ -516,6 +544,20 @@ sub processBlock
              $Perl_Code= "";
              $lineIn =~ s/\s*$//;
              $Perl_Input_Termination= qr/$lineIn/;
+          }
+        elsif ($lineIn =~ s/$shellPat//)
+          {  
+            if ($lineIn =~ s/<<\s*//)
+              {
+                $Within_Shell_Input= 1;
+                $Shell_Code= "";
+                $lineIn =~ s/\s*$//;
+                $Shell_Input_Termination= qr/$lineIn/;
+              }
+            else
+              {
+                $self->do_shell($lineIn);
+              }
           }
         elsif ( $lineIn =~ /$quotePat/ )
           { 
@@ -785,7 +827,7 @@ may be changed. Contact Helmut for further discussions.
 =head2 Output generation by Perl code
 
 For complex generation of output one can specify one or more Perl
-subroutines which can be called from within an @EVAL statement.
+subroutines which can be called from within an @PERL statement.
 To specify the Perl code you say
 
  @PERL  <<  Termination_Regexp
@@ -830,6 +872,27 @@ to produce the C-statement
 =cut
 
 #'
+
+=head2 Output generation by shell code
+
+For complex generation of output one can also specify one or more shell
+commands which can be called from within an @SHELL statement.
+
+To include the output of the shell command into your text, you can
+specify: 
+ @SHELL [some shell command]
+
+For instance:
+ @SHELL ls Vpp.pm
+
+You can also specify a more complex shell command with:
+ @SHELL  <<  Termination_Regexp
+ any shell code not matching 'Termination_Regexp'
+ termination line matching 'Termination_Regexp'
+
+Unlike the @PERL command, there's no need to call Vpp_Out from the
+shell code.  All the STDOUT of the shell commands will be included in
+the text.
 
 =head2 Setting variables
 
@@ -1021,6 +1084,7 @@ sub setActionChar
     $self->{foreachPat} 	= qr/^\s*\Q$action\Eforeach(?=\W)\s*/i;
     $self->{endforPat} 	= qr/^\s*\Q$action\Eendfor\s*/i;
     $self->{perlPat}        = qr/^\s*\Q$action\Eperl\s+<<\s*/i;
+    $self->{shellPat}        = qr/^\s*\Q$action\Eshell\s*/i;
     $self->{actionPat} 	= qr/^\s*\Q$action\E\w/; # unknown action
     $self->setSubstitute(undef)  unless defined $self->{substitute}
   }
@@ -1157,7 +1221,7 @@ called more than once for the same Vpp-object.
 
 Dominique Dumont    Dominique_Dumont@grenoble.hp.com
 
-Copyright (c) 1996-2000 Dominique Dumont. All rights reserved.  This
+Copyright (c) 1996-2001 Dominique Dumont. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
