@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /users/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.12 1997/12/17 12:36:46 domi Exp $
+# $Header: /users/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.13 1998/03/17 14:48:30 domi Exp $
 #
 # $Source: /users/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.12 $
+# $Revision: 1.13 $
 # $Locker:  $
 # 
 ############################################################
@@ -13,12 +13,11 @@ package Text::Vpp;
 use strict;
 use vars qw($VERSION);
 use FileHandle ;
-use English ;
 use Carp ;
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = '0.1';
+$VERSION = '0.2';
 
 # Preloaded methods go here.
 
@@ -454,7 +453,7 @@ sub snitch
 
 Dominique Dumont    Dominique_Dumont@grenoble.hp.com
 
-Copyright (c) 1996 Dominique Dumont. All rights reserved.  This
+Copyright (c) 1996-1998 Dominique Dumont. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

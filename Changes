@@ -1,15 +1,20 @@
-Revision history for Perl extension Text::Vpp.
+Tue Mar 17 15:45:37 1998  Dominique Dumont  <domi@marlis.grenoble.hp.com>
 
-0.01  Wed Feb 26 13:51:52 1997
-	- original version; created by h2xs 1.16
+	Version 0.2 :
+	* Vpp.pm : removed unnecessary "use English"
+	* README : better explanations
+		
+
+
+0.04 Mon Oct 20 15:17:09 METDST 1997
+        - added vpp executable
+
+0.03 Fri Oct  3 13:30:56 METDST 1997
+        - added ignoreBackslash method
 
 0.02 Mon Sep 22 17:57:54 METDST 1997
 	- Now we can chain more than one elsif (thanks to Jim Searle for the test
 	case)
 
-0.03 Fri Oct  3 13:30:56 METDST 1997
-        - added ignoreBackslash method
-
-0.04 Mon Oct 20 15:17:09 METDST 1997
-        - added vpp executable
-
+0.01  Wed Feb 26 13:51:52 1997
+	- original version; created by h2xs 1.16
