@@ -1,28 +1,25 @@
-This is the README file for Text::Vpp, the Perl
-versatile pre-prosessor.
-
-This is Version 0.01.  See the "Changes" file for details on
-the new features and fixes in this release.
-
-This mopule was written with perl5.003. It should work fine with perl5.001
-or later (although I did not test it).
+This is the README file for Text::Vpp, the Perl versatile pre-prosessor.
 
 You may find this module useful if you want to pre-preprocess text. 
 Vpp understands if, else, elsif, endif, include and can substitute variables
 in the text. (See the test files in the distribution)
 
+This module is now in BETA state
+
+This mopule was written with perl5.003. It should work fine with perl5.001
+or later (although I did not test it).
+
 See the embedded documentation in the module for more details.
 
 Comments and suggestions are always welcome.
 
-Note that this module is in alpha state. Its interface may change (but
-I hope not).
-
-Alpha exit criteria:
+BETA exit criteria:
 - When some peoples (well, say 10 guys) tell me that they've used it 
   and did not find major bug with the module or minor problems with the 
   interface.
 
+Finally, I'd like to thank Helmut Jarausch for his bug report and the patch
+he provided.
 
  - Dominique Dumont
    dominique_dumont@grenoble.hp.com
@@ -30,10 +27,10 @@ Alpha exit criteria:
 ---------------------------------------------------------------------
 INSTALLATION
 
-   	 zcat Text-Vpp-0.01.tar.gz | tar xvf -
-   	 cd Text-Vpp-0.01
+   	 gunzip -x <distribution_file> | tar xvf -
+   	 cd <module>
    	 perl Makefile.PL
-   	 make test                              # this will run 3 tests
+   	 make test
    	 make install
 
 

@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..9\n"; }
+BEGIN { $| = 1; print "1..13\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Vpp;
 $loaded = 1;
@@ -155,7 +155,68 @@ if ($res eq $expect)
   }
 else
   {
-	print "not ok 7\n",
+	print "not ok 9\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+
+
+# test action Char 
+$fin = new Text::Vpp("text_action.txt") ;
+$fin->ignoreBackslash;
+
+$expect =  "included text\n\nSome more text\n\n";
+$fin->setActionChar('^');
+$fin->setVar('foo' => 1);
+
+$ret = $fin -> substitute() ;
+
+if ($ret)
+  {
+	print "ok 10\n";
+  }
+else
+  {
+	print "not ok 10\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 11\n";
+  }
+else
+  {
+	print "not ok 11\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+
+
+#redo the subsitute for fun
+$ret = $fin -> substitute() ;
+
+if ($ret)
+  {
+	print "ok 12\n";
+  }
+else
+  {
+	print "not ok 12\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 13\n";
+  }
+else
+  {
+	print "not ok 13\n",
 	"expect\n---\n",$expect,"---\n",
 	"got   \n---\n",$res,   "---\n";
   }

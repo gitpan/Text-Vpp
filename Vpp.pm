@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /mnt/marlis/d0106/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.11 1997/10/20 13:17:41 domi Exp $
+# $Header: /users/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.12 1997/12/17 12:36:46 domi Exp $
 #
-# $Source: /mnt/marlis/d0106/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.11 $
+# $Source: /users/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v $
+# $Revision: 1.12 $
 # $Locker:  $
 # 
 ############################################################
@@ -11,29 +11,16 @@
 package Text::Vpp;
 
 use strict;
-use vars qw($VERSION @ISA @EXPORT);
+use vars qw($VERSION);
 use FileHandle ;
 use English ;
 use Carp ;
 
-require Exporter;
-require AutoLoader;
+use AutoLoader qw/AUTOLOAD/ ;
 
-@ISA = qw(Exporter AutoLoader);
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-#@EXPORT = qw(
-#
-#);
-
-$VERSION = '0.04';
-
+$VERSION = '0.1';
 
 # Preloaded methods go here.
-
-
-# Below is the stub of documentation for your module. You better edit it!
 
 =head1 NAME
 
@@ -196,6 +183,7 @@ sub substitute
 	$self->{errorText} = [] ;
 	$self->{error} = 0;
 
+	$self->{fileDesc}->seek(0,0);
 	my $res = $self->processBlock(1,1,-1) ;
 
 	if (defined $fileOut)
@@ -261,11 +249,11 @@ sub processBlock
 	my ($stage) = ($level == 0) ? 0 : 1 ;
 	
 	my ($line,$keep) ;
-	while ($line = $self->{fileDesc}->getline) 
+	while (defined($line = $self->{fileDesc}->getline) ) 
 	  {
 		chomp($line);
 		#skip commented lines
-		next if (defined $self->{comment} and $line =~ /^\s*$self->{comment}/);
+		next if (defined $self->{comment} and $line =~ /^\s*\Q$self->{comment}\E/);
 		
 		# get following line if the line is ended by \
 		# (followed by tab or whitespaces)
@@ -293,13 +281,13 @@ sub processBlock
 		my $includePat = $action."include" ;
 		my $evalPat    = $action."eval" ;
 		
-		if ($lineIn =~ s/$ifPat\s*//i) 
+		if ($lineIn =~ s/\Q$ifPat\E\s*//i) 
 		  {
 			# process the lines after the ifdef, 
 			my ($expandLoc) = $self->myEval($lineIn) ;
 			push @$out, @{$self->processBlock($expand , $expandLoc ,$level)} ;
 		  }
-		elsif ($lineIn =~ s/$elsifPat\s*//i) 
+		elsif ($lineIn =~ s/\Q$elsifPat\E\s*//i) 
 		  {
 			# process the lines after the ELSIF, done is set if the block
 			# is expanded
@@ -311,7 +299,7 @@ sub processBlock
 			$expand = $self->myEval($lineIn) && !$done ;
 			$done = $expand || $done ;
 		  }
-		elsif ($lineIn =~ /$elsePat/i) 
+		elsif ($lineIn =~ /\Q$elsePat\E/i) 
 		  {
 			if ($stage == 0 || $stage == 3 ) 
 			  {
@@ -320,15 +308,15 @@ sub processBlock
 			$stage = 3 ;
 			$expand = !$done ;
 		  } 
-		elsif ($lineIn =~ /$endifPat/i) 
+		elsif ($lineIn =~ /\Q$endifPat\E/i) 
 		  {
 			if ($stage == 0) {$self->snitch("unexpected endif");}
 			return $out ;
 		  } 
-		elsif ($lineIn =~ /$includePat/i)
+		elsif ($lineIn =~ /\Q$includePat\E/i)
 		  {
 			# look like we've got a new file to slurp
-			my ($newFileName) = ($lineIn =~ /$includePat\s+(\S+)/i) ;
+			my ($newFileName) = ($lineIn =~ /\Q$includePat\E\s+(\S+)/i) ;
 			my $newFile =  Text::Vpp-> new ($newFileName, $self->{var},
 										   $self->{action},$self->{comment}) ;
 			if ($newFile->substitute())
@@ -345,12 +333,12 @@ sub processBlock
 			  }
 			undef $newFile ;
 		  }
-		elsif ($lineIn =~ /$evalPat/i or $lineIn !~ /$action/)
+		elsif ($lineIn =~ /\Q$evalPat\E/i or $lineIn !~ /\Q$action\E/)
 		  {
 			# process the line
 			if ($expand && $globExpand) 
 			  {
-				if ($lineIn =~ s/$evalPat//i) 
+				if ($lineIn =~ s/\Q$evalPat\E//i) 
 				  {
 					$self->myEval($lineIn) ;
 				  }
@@ -360,7 +348,7 @@ sub processBlock
 					$lineIn =~ s[\$\{?(\w+)\b\}?]
 					  [ 
 					   if (defined($self->{var}{$1})) {$self->{var}{$1} ;}
-					   else {'$'.$1 ;} # '} comment for xemacs
+					   else {'$'.$1 ;}
 					  ]ge ;
 					push @$out, $lineIn ;
 				  }
