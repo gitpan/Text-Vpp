@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /users/domi/Tools/perlDev/Text/Vpp/RCS/Vpp.pm,v 1.9 1997/09/22 15:54:27 domi Exp $
+# $Header: /users/domi/Tools/perlDev/Text/Vpp/RCS/Vpp.pm,v 1.10 1997/10/03 11:29:49 domi Exp $
 #
 # $Source: /users/domi/Tools/perlDev/Text/Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.9 $
+# $Revision: 1.10 $
 # $Locker:  $
 # 
 ############################################################
@@ -27,7 +27,7 @@ require AutoLoader;
 #
 #);
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 
 # Preloaded methods go here.
@@ -48,9 +48,13 @@ Text::Vpp - Perl extension for a versatile text pre-processor
  $fin->setVar('one_variable_name' => 'value_one', 
 			  'another_variable_name' => 'value_two') ;
 
- $res = $fin -> substitute ;
+ $res = $fin -> substitute ; # or directly $fin -> substitute('file_out') 
 
- print "Result is : \n\n",join("\n",@$res) ,"\n";
+ die "Vpp error ",$fin->getErrors,"\n" unless $res ;
+
+ $fout = $fin->getText ;
+
+ print "Result is : \n\n",join("\n",@$fout) ,"\n";
 
 =head1 DESCRIPTION
 
@@ -139,6 +143,7 @@ sub new
 
 	$self->{action}  = defined $action  ? $action  : '@' ;
 	$self->{comment} = defined $comment ? $comment : '#' ;
+	$self->{'backslash'} = 1 ;
 
 	$self->{fileDesc} = new FileHandle ;
 
@@ -258,15 +263,15 @@ sub processBlock
 	my ($line,$keep) ;
 	while ($line = $self->{fileDesc}->getline) 
 	  {
-		chop($line);
+		chomp($line);
 		#skip commented lines
 		next if (defined $self->{comment} and $line =~ /^\s*$self->{comment}/);
 		
 		# get following line if the line is ended by \
 		# (followed by tab or whitespaces)
-		if ($line =~ s/\\\s*$//) 
+		if ($self->{backslash} == 1 and $line =~ s/\\\s*$//) 
 		  {
-			$keep .= $line."\n" ;
+			$keep .= $line ;
 			next ;
 		  }
 		
@@ -420,6 +425,7 @@ sub setActionChar
 =head2 setCommentChar(char)
 
 Enables the user to use another char as comment char. (default #)
+This value may be set to undef so that no comments are possible.
 
 =cut
 
@@ -428,6 +434,20 @@ sub setCommentChar
 	my $self =shift ;
 	
 	$self->{comment} = shift ;
+  }
+
+=head2 ignoreBackslash()
+
+By default, line ending with '\' are glued to the following line (like in
+ksh). Once this method is called '\' will be left as is.
+
+=cut
+
+sub ignoreBackslash
+  {
+	my $self =shift ;
+	
+	$self->{'backslash'} = 0 ;
   }
 
 sub snitch

@@ -6,3 +6,6 @@ Revision history for Perl extension Text::Vpp.
 0.02 Mon Sep 22 17:57:54 METDST 1997
 	- Now we can chain more than one elsif (thanks to Jim Searle for the test
 	case)
+
+0.03 Fri Oct  3 13:30:56 METDST 1997
+        - added ignoreBackslash method

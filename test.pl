@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..5\n"; }
+BEGIN { $| = 1; print "1..9\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Vpp;
 $loaded = 1;
@@ -99,3 +99,63 @@ else
   }
 
 
+# test backslash stuff
+$fin = new Text::Vpp("text_backslash.txt") ;
+
+$expect =  "first line next line\n\nsecond line\n" ;
+
+$ret = $fin -> substitute() ;
+
+if ($ret)
+  {
+	print "ok 6\n";
+  }
+else
+  {
+	print "not ok 6\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 7\n";
+  }
+else
+  {
+	print "not ok 7\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+
+# test ignore backslash stuff
+$fin = new Text::Vpp("text_backslash.txt") ;
+$fin->ignoreBackslash;
+
+$expect =  "first line \\\nnext line\n\nsecond line\n" ;
+
+$ret = $fin -> substitute() ;
+
+if ($ret)
+  {
+	print "ok 8\n";
+  }
+else
+  {
+	print "not ok 8\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 9\n";
+  }
+else
+  {
+	print "not ok 7\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
