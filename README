@@ -44,7 +44,7 @@ Comments and suggestions are always welcome.
 Finally, I'd like to thank Helmut Jarausch for his bug report and the
 numerous patches he provided (including the 'foreach' feature).
 
-Copyright (c) 1996-2000 Dominique Dumont. All rights reserved.  This
+Copyright (c) 1996-2001 Dominique Dumont. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

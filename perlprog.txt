@@ -20,6 +20,11 @@ This is the first normal line
     Vpp_Out("double chance_${nseq}_of_$num = $chance;");
   }
   
+  sub WhoIs($) {
+    my $Subject = $_[0];
+    return "our $Subject is $$VAR{$Subject}";
+  }
+  
 END_OF_PERL
 This is the second normal line
 @EVAL &Hello
@@ -27,4 +32,5 @@ This is the third normal line
 @EVAL &Chances(7,49)
 This is the fourth normal line
 @EVAL &Chances(6,16)
+Who is the Guru : @@WhoIs('Guru')@@ :
 This is the last line

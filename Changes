@@ -1,3 +1,7 @@
+2001-02-20  Dominique Dumont  <domi@komarr.grenoble.hp.com>
+
+	* Vpp.pm: v1.13: buf fixes contributed by Helmut (Thanks Helmut)
+
 2000-07-12  Dominique Dumont  <domi@ISPSERV.grenoble.hp.com>
 
 	* Vpp.pm v1.12 : added inline subroutine (Tx to Helmut)

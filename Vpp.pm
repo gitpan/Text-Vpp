@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.20 2000/07/12 11:42:42 domi Exp $
+# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.21 2001/02/20 12:42:32 domi Exp $
 #
 # $Source: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.20 $
+# $Revision: 1.21 $
 # $Locker:  $
 # 
 ############################################################
@@ -18,7 +18,7 @@ use Carp ;
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = '1.12' ;
+$VERSION = '1.13' ;
 
 # tiny FiFo "package"
 
@@ -196,6 +196,8 @@ sub Vpp_Out {
   &$Put_Output_Sub;
 }
 
+our $VAR;
+
 sub processBlock 
   {
 	# three parameters :
@@ -246,6 +248,7 @@ sub processBlock
     my $foreachPat = $self->{foreachPat};
     my $endforPat  = $self->{endforPat};
     my $perlPat    = $self->{perlPat};
+       $VAR        = $self->{var};
     
     if ( $useFiFo )
       { 
@@ -506,6 +509,7 @@ sub processBlock
             $foreachPat = $self->{foreachPat};
             $endforPat  = $self->{endforPat};
             $perlPat    = $self->{perlPat};
+            $VAR        = $self->{var};
           }
         elsif ($lineIn =~ s/$perlPat//)
           {  $Within_Perl_Input= 1;
@@ -788,9 +792,11 @@ To specify the Perl code you say
  any perl source lines not matching 'Termination_Regexp'
  termination line matching 'Termination_Regexp'
 
-Note, that any output B<must> use the predefined
+Note, that any output B<have to> use the predefined
 Perl sub C<Vpp_Out>. Note, that the subroutine names
 should be I<unique> even across included files.
+To access the variables set by e.g. setVar, you
+B<have to> use the predefined hash-ref C<$VAR>.
 Here is an example which generates constants for a
 C-program which amount to the probability that you
 draw a specified sequence out of a set.

@@ -401,6 +401,7 @@ else
 #-----------------------------------------
 
 $fin = new Text::Vpp("perlprog.txt");
+$fin->setVar(Guru => 'Gurusamy Sarathy');
 $expect = <<'EOExp';
 This is the first normal line
 This is the second normal line
@@ -410,6 +411,7 @@ This is the third normal line
 double chance_7_of_49 = 1.35815917929809e-08;
 This is the fourth normal line
 double chance_6_of_16 = 0.0001998001998002;
+Who is the Guru : our Guru is Gurusamy Sarathy :
 This is the last line
 EOExp
 
