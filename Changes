@@ -1,3 +1,8 @@
+2001-05-11  Dominique Dumont  <domi@komarr.grenoble.hp.com>
+
+	* Vpp.pm: added require 5.6.0
+	* README: perl version must be >= 5.6.0
+
 2001-02-22  Dominique Dumont  <domi@komarr.grenoble.hp.com>
 
 	* test.pl: v1.14 fix test that did not work under windoze.

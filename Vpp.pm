@@ -1,16 +1,16 @@
 ############################################################
 #
-# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.25 2001/04/24 13:57:24 domi Exp $
+# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.26 2001/05/11 12:10:34 domi Exp $
 #
 # $Source: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.25 $
+# $Revision: 1.26 $
 # $Locker:  $
 # 
 ############################################################
 
 package Text::Vpp;
 
-require 5.005;
+require 5.6.0;
 use strict;
 use vars qw($VERSION);
 use IO::File ;
@@ -18,7 +18,7 @@ use Carp ;
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = '1.15' ;
+$VERSION = '1.16' ;
 
 # tiny FiFo "package"
 

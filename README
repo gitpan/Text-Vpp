@@ -36,7 +36,7 @@ your perl program instead of spawning another process.
 
 This module is in 'Release' state
 
-This module requires perl5.005.
+This module requires perl5.6.0.
 
 See the embedded documentation in the module for more details.
 
