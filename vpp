@@ -1,0 +1,151 @@
+#!/opt/perl5/bin/perl
+
+use Text::Vpp ;
+use Getopt::Long ;
+
+sub usage
+  {
+    die "vpp [-var foo=bar] [-action '\@'] [-nocomment] [-comment '#']\n",
+    "\t[-ignorebs] [-output output_file] input_file \n\n",
+
+    "var: specify input_file variable, must be like var_name=var_value\n",
+    "action: set action char\n",
+    "nocomment: input_file has no comment, all lines are passed to out file\n",
+    "comment: specify comment char (default #)\n",
+    "ignorebs: don't append lines ending with '\' \n",
+    "output: output file name (default stdout)\n" ;
+  }
+
+my $ret = GetOptions('var=s@' => \@vars,'action=s' => \$action,
+                     'nocomment!'=>\$nocomment, 'output=s' => \$foutName,
+                     'comment=s' => \$comment, 'ignorebs'=> \$ignore)
+  or usage ;
+
+my $finName = shift ;
+die "No input file\n" unless defined $finName ;
+
+my $fin = Text::Vpp-> new($finName) ;
+
+if (defined @vars)
+  {
+    foreach (@vars)
+      {
+        my @args = /(\w+)=(.*)/ ;
+        $fin->setVar(@args) ;
+      }
+  }
+
+$fin->setActionChar($action) if defined $action ;
+$fin->setCommentChar(undef) if defined $nocomment ;
+$fin->setCommentChar($comment) if defined $comment ;
+$fin->ignoreBackslash if defined $ignore;
+
+my $res = $fin -> substitute($foutName) ;
+
+die "Vpp error ",$fin->getErrors,"\n" unless $res ;
+
+
+=head1 NAME
+
+vpp - versatile text pre-processor
+
+=head1 SYNOPSIS
+
+ vpp -var toto=1 file_in > file_out
+  
+ #same result
+ vpp -var toto=1 -output file_out file_in
+
+=head1 DESCRIPTION
+
+vpp enables you to pre-process a file.
+
+Note that vpp is not designed to replace the well known cpp. 
+
+=head1 INPUT FILE SYNTAX
+
+=head2 Comments
+
+All lines beginning with '#' are skipped. (May be changed with 
+-comment option)
+
+=head2 in-line perl eval
+
+Lines beginning with '@EVAL' (@ being pompously named the 'action char') 
+are evaluated as small perl script. 
+
+When -comment is used with '#' as a parameter, Vpp doesn't 
+skip lines beginning with '#'. In this case, there's no comment possible.
+
+=head2 Multi-line input
+
+Line ending with \ are concatenated with the following line.
+
+=head2 Variables substitution
+
+You can specify in your text varaibles beginning with $ (like in perl).
+These variables can be set either by the -var option or by the 
+"eval" capability of Vpp (See below).
+
+=head2 Setting variables
+
+Line beginning by @ are "evaled" using variables defined by -var.
+You can use only scalar variables. This way, you can also define variables in 
+your text which can be used later.
+
+=head2 Conditional statements
+
+vpp understands
+@IF, @ELSIF, @ENDIF,and so on.
+@INCLUDES and @IF can be nested.
+
+@IF and @ELSIF are followed by a string which will be evaled using
+the variable you defined (either with setVar() or in the text).
+
+=head2 Inclusion
+
+vpp understands @INCLUDE
+
+=head1 command options
+
+=head2 -var var_name=value
+
+Specify variables that are used in the input file. The argument of the option
+must be written like var_name=var_value
+
+=head2 -action 'char'
+
+Enables the user to use another char as action char. (default @)
+
+Example: -action '#' will enable vpp to understand #include, #ifdef ..
+
+=head2 -comment 'char'
+
+Enables the user to use another char as comment char. (default #)
+
+=head2 -nocomment
+
+no comments are possible.
+
+=head2 -ignorebs
+
+By default, line ending with '\' are glued to the following line (like in
+ksh). Once this method is called '\' will be left as is.
+
+=head2 -output
+
+Specify the output file name. defaults to STSOUT
+
+=head1 AUTHOR
+
+Dominique Dumont    Dominique_Dumont@grenoble.hp.com
+
+Copyright (c) 1996 Dominique Dumont. All rights reserved.  This
+program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+perl(1), Text::Vpp(3)
+
+=cut

@@ -9,3 +9,7 @@ Revision history for Perl extension Text::Vpp.
 
 0.03 Fri Oct  3 13:30:56 METDST 1997
         - added ignoreBackslash method
+
+0.04 Mon Oct 20 15:17:09 METDST 1997
+        - added vpp executable
+

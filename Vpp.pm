@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /users/domi/Tools/perlDev/Text/Vpp/RCS/Vpp.pm,v 1.10 1997/10/03 11:29:49 domi Exp $
+# $Header: /mnt/marlis/d0106/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.11 1997/10/20 13:17:41 domi Exp $
 #
-# $Source: /users/domi/Tools/perlDev/Text/Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.10 $
+# $Source: /mnt/marlis/d0106/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v $
+# $Revision: 1.11 $
 # $Locker:  $
 # 
 ############################################################
@@ -27,7 +27,7 @@ require AutoLoader;
 #
 #);
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 
 # Preloaded methods go here.
