@@ -408,9 +408,9 @@ This is the second normal line
 Hello world - Here I am
 and here on the next line
 This is the third normal line
-double chance_7_of_49 = 1.35815917929809e-08;
+double chance_7_of_49 = 0.000000013582;
 This is the fourth normal line
-double chance_6_of_16 = 0.0001998001998002;
+double chance_6_of_16 = 0.000199800200;
 Who is the Guru : our Guru is Gurusamy Sarathy :
 This is the last line
 EOExp

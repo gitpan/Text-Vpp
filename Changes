@@ -1,3 +1,7 @@
+2001-02-22  Dominique Dumont  <domi@komarr.grenoble.hp.com>
+
+	* test.pl: v1.14 fix test that did not work under windoze.
+
 2001-02-20  Dominique Dumont  <domi@komarr.grenoble.hp.com>
 
 	* Vpp.pm: v1.13: buf fixes contributed by Helmut (Thanks Helmut)

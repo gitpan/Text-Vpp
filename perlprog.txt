@@ -17,7 +17,7 @@ This is the first normal line
         $chance*= $k/($num-$k);
       }
     }
-    Vpp_Out("double chance_${nseq}_of_$num = $chance;");
+    Vpp_Out(sprintf ('double chance_%d_of_%d = %.12f;',$nseq,$num, $chance));
   }
   
   sub WhoIs($) {

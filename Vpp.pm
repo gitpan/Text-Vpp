@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.21 2001/02/20 12:42:32 domi Exp $
+# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.22 2001/02/22 12:50:23 domi Exp $
 #
 # $Source: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.21 $
+# $Revision: 1.22 $
 # $Locker:  $
 # 
 ############################################################
@@ -18,7 +18,7 @@ use Carp ;
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = '1.13' ;
+$VERSION = '1.14' ;
 
 # tiny FiFo "package"
 
