@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /users/domi/Tools/perlStuff/Text/Vpp/RCS/Vpp.pm,v 1.8 1997/02/28 15:58:17 domi Exp $
+# $Header: /users/domi/Tools/perlDev/Text/Vpp/RCS/Vpp.pm,v 1.9 1997/09/22 15:54:27 domi Exp $
 #
-# $Source: /users/domi/Tools/perlStuff/Text/Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.8 $
+# $Source: /users/domi/Tools/perlDev/Text/Vpp/RCS/Vpp.pm,v $
+# $Revision: 1.9 $
 # $Locker:  $
 # 
 ############################################################
@@ -27,7 +27,7 @@ require AutoLoader;
 #
 #);
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 
 # Preloaded methods go here.
@@ -224,7 +224,7 @@ sub getText
 	return $self->{result} ;
   }
 
-=head2 getError()
+=head2 getErrors()
 
 Returns an array ref containing the errors.
 
@@ -298,7 +298,10 @@ sub processBlock
 		  {
 			# process the lines after the ELSIF, done is set if the block
 			# is expanded
-			if ($stage != 1) {$self->snitch("unexpected elsif");}
+			unless ($stage == 1 or $stage ==2) 
+                          {
+                            $self->snitch("unexpected elsif");
+                          }
 			$stage = 2 ;
 			$expand = $self->myEval($lineIn) && !$done ;
 			$done = $expand || $done ;

@@ -4,5 +4,6 @@ Makefile.PL
 Vpp.pm
 inc_text.txt
 text_in.txt
+text_elsif.txt
 README
 test.pl

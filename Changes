@@ -3,3 +3,6 @@ Revision history for Perl extension Text::Vpp.
 0.01  Wed Feb 26 13:51:52 1997
 	- original version; created by h2xs 1.16
 
+0.02 Mon Sep 22 17:57:54 METDST 1997
+	- Now we can chain more than one elsif (thanks to Jim Searle for the test
+	case)

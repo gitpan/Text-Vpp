@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..3\n"; }
+BEGIN { $| = 1; print "1..5\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Vpp;
 $loaded = 1;
@@ -58,6 +58,42 @@ if ($res eq $expect)
 else
   {
 	print "not ok 3\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+
+
+
+# Test the ELSIF construct.
+
+$fin = new Text::Vpp("text_elsif.txt") ;
+$fin->setVar('var1' => 3) ;
+
+$ret = $fin -> substitute() ;
+
+$expect =  "Sample text for Text::Vpp using ELSEIF
+We should see this line, because var1 should be 3
+" ;
+
+if ($ret)
+  {
+	print "ok 4\n";
+  }
+else
+  {
+	print "not ok 4\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 5\n";
+  }
+else
+  {
+	print "not ok 5\n",
 	"expect\n---\n",$expect,"---\n",
 	"got   \n---\n",$res,   "---\n";
   }
