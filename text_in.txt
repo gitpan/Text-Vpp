@@ -1,5 +1,5 @@
 Sample text for Text::Vpp
-@INCLUDE inc_text.txt
+@INCLUDE 'inc_text.txt'
 #
 @EVAL $var2 = 1
 #

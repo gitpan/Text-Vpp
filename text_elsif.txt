@@ -1,5 +1,5 @@
 Sample text for Text::Vpp using ELSEIF
-#@INCLUDE inc_text_elsif.txt
+#@INCLUDE 'inc_text_elsif.txt'
 #
 @IF ($var1 == 1)
 We should not see this line, because var1 should not be 1

@@ -1,0 +1,25 @@
+@IF ($Complex)
+@FOREACH $Col (7,scalar(print (">>>false foreach-evaluation,,,"),11) )
+generated line:  \Col  <<<
+@IF ($Col != 11)
+---------------------
+@ENDIF
+@ENDFOR
+@IF (scalar(print (">>>false if-evaluation,,,"),1))
+true IF in false context
+@ENDIF
+@ENDIF
+
+@EVAL $Msg= "hello world";  \
+      $ForList=[1,2];
+@IF ($Real) # true
+now two actions in one line === @@4*atan2(1,1)@@ ---  @@$Msg@@  EOL
+you shouldn't see the following empty loop
+@FOREACH $Col (@{[]})
+Error: empty loop expansion
+@ENDFOR
+Now a loop with a 'computed' list
+@FOREACH $Col (@{$ForList})
+ expanded Forlist \Col. line
+@ENDFOR
+@ENDIF

@@ -1,11 +1,17 @@
+1998-08-11  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
+
+	* version 1.01: Added missing txt files used for the test :-(
+
+	Version 1.0:
+	* Vpp.pm :  added foreach loop, and @@ in line eval. (Thanks to
+	Helmut Jarausch)
+
 Tue Mar 17 15:45:37 1998  Dominique Dumont  <domi@marlis.grenoble.hp.com>
 
 	Version 0.2 :
 	* Vpp.pm : removed unnecessary "use English"
 	* README : better explanations
 		
-
-
 0.04 Mon Oct 20 15:17:09 METDST 1997
         - added vpp executable
 

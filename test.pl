@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..13\n"; }
+BEGIN { $| = 1; print "1..17\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Vpp;
 $loaded = 1;
@@ -220,3 +220,93 @@ else
 	"expect\n---\n",$expect,"---\n",
 	"got   \n---\n",$res,   "---\n";
   }
+
+# test FOREACH loop and substitution patter
+ 
+$fin = new Text::Vpp("for_subs.txt") ;
+$fin->setPrefixChar('\\');
+
+$expect = <<'EOExp';
+Sample text for demonstrating loops and subsitution patterns
+numbers 0: 0  and  3: 3 on this line
+ print this line
+
+---------------------
+generated line: 1 column: 7 position 7 <<<
+generated line: 1 column: 11 position 11 <<<
+---------------------
+generated line: 2 column: 7 position 87 <<<
+generated line: 2 column: 11 position 91 <<<
+---------------------
+generated line: 3 column: 7 position 167 <<<
+generated line: 3 column: 11 position 171 <<<
+
+last line
+EOExp
+
+$fin->setVar(Real => 1, Complex => 0);
+
+$ret = $fin -> substitute() ;
+
+if ($ret)
+  {
+	print "ok 14\n";
+  }
+else
+  {
+	print "not ok 14\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 15\n";
+  }
+else
+  {
+	print "not ok 15\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+
+$fin = new Text::Vpp("advanced.txt") ;
+$fin->setPrefixChar('\\');
+
+$expect = <<'EOExp';
+
+now two actions in one line === 3.14159265358979 ---  hello world  EOL
+you shouldn't see the following empty loop
+Now a loop with a 'computed' list
+ expanded Forlist 1. line
+ expanded Forlist 2. line
+EOExp
+
+$fin->setVar(Real => 1, Complex => 0);
+
+$ret = $fin -> substitute() ;
+
+if ($ret)
+  {
+	print "ok 16\n";
+  }
+else
+  {
+	print "not ok 16\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 17\n";
+  }
+else
+  {
+	print "not ok 17\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+
