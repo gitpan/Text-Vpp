@@ -5,5 +5,8 @@ WriteMakefile(
               'NAME'	=> 'Text::Vpp',
               'VERSION_FROM' => 'Vpp.pm', # finds $VERSION
               'EXE_FILES' => ['vpp'],
+              ($] >= 5.005 ?
+               (ABSTRACT   => 'Versatile text pre-processor',
+                AUTHOR     => 'Dominique Dumont (domi@barrayar.grenoble.hp.com)') : ()),
               'dist' => {COMPRESS=>'gzip -9f', SUFFIX => 'gz'}
              );

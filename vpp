@@ -5,21 +5,27 @@ use Getopt::Long ;
 
 sub usage
   {
-    die "vpp [-var foo=bar] [-action '\@'] [-nocomment] [-comment '#']\n",
-    "\t[-prefix] [-ignorebs] [-output output_file] input_file \n\n",
+    die "vpp [-var foo=bar] [-varFile] [-action] [-nocomment] [-comment]\n",
+    "    [-prefix] [-suffix] [-substitute] [-ignorebs] [-output output_file]\n",
+    "    input_file \n\n",
 
-    "var: specify input_file variable, must be like var_name=var_value\n",
-    "action: set action char\n",
-    "nocomment: input_file has no comment, all lines are passed to out file\n",
-    "comment: specify comment char (default #)\n",
-    "prefix: specify prefix char (default \$)\n",
-    "ignorebs: don't append lines ending with '\' \n",
-    "output: output file name (default stdout)\n" ;
+    "var       : specify input_file variable, must be like var_name=var_value\n",
+    "varFile   : specify a filename containing a Perl hash in Data::Dumper format\n",
+    "action    : set action char (default \@)\n",
+    "nocomment : input_file has no comment, all lines are passed to out file\n",
+    "comment   : specify comment char (default #)\n",
+    "prefix    : specify prefix char (default \$)\n",
+    "suffix    : specify suffix char (default none)\n",
+    "substitute: specify a pair like /prefix/suffix/ for evaled substitution\n",
+    "            (default twice the action char)\n",
+    "ignorebs  : don't append lines ending with \\ \n",
+    "output    : output file name (default stdout)\n" ;
   }
 
-my $ret = GetOptions('var=s@' => \@vars,'action=s' => \$action,
+my $ret = GetOptions('var=s@' => \@vars,'varFile=s' => \$varFile, 'action=s' => \$action,
                      'nocomment!'=>\$nocomment, 'output=s' => \$foutName,
                      'comment=s' => \$comment, 'prefix=s' => \$prefix,
+                     'suffix=s' => \$suffix, 'substitute=s' => \$substitute,
                      'ignorebs'=> \$ignore)
   or usage ;
 
@@ -29,23 +35,39 @@ die "No input file\n" unless defined $finName ;
 my $fin = Text::Vpp-> new($finName) ;
 
 if (defined @vars)
-  {
+  { my %Vars;
     foreach (@vars)
       {
-        my @args = /(\w+)=(.*)/ ;
-        $fin->setVar(@args) ;
+        $Vars{$1}= $2  if /(\w+)=(.*)/ ;
       }
+      $fin->setVar(\%Vars) ;
   }
+elsif (defined $varFile)
+  { $fin->setVarFromFile($varFile); }
 
 $fin->setActionChar($action) if defined $action ;
 $fin->setCommentChar(undef) if defined $nocomment ;
 $fin->setCommentChar($comment) if defined $comment ;
-$fin->setPrefixChar($comment) if defined $prefix ;
+$fin->setPrefixChar($prefix) if defined $prefix ;
+$fin->setSuffixChar($suffix) if defined $suffix ;
+if ( defined $substitute )
+  { my @LS = $substitute =~ /(\S)([^\1]+)\1([^\1]+)\1/;
+    shift @LS;
+    $fin->setSubstitute([@LS]);
+  }
 $fin->ignoreBackslash if defined $ignore;
 
-my $res = $fin -> substitute($foutName) ;
+my $res;
+if ( defined $foutName )
+  { $res = $fin -> substitute($foutName) ;
+    die "Vpp error ",$fin->getErrors,"\n" unless $res ;
+  }
+else
+  { $res = $fin -> substitute;
+    die "Vpp error ",$fin->getErrors,"\n" unless $res ;
+    print join("\n",@{$fin->getText}),"\n";
+  }
 
-die "Vpp error ",$fin->getErrors,"\n" unless $res ;
 
 
 =head1 NAME
@@ -78,6 +100,10 @@ Lines beginning with '@EVAL' (@ being pompously named the 'action char')
 are evaluated as small perl script. 
 If a line contains (multiple) @@ Perl-Expression @@ constructs these
 are replaced by the value of that Perl-Expression.
+To call one of the methods of a Vpp-object, like setActionChar, this
+has to called as  "${self}-E<gt>setActionChar('@');"
+Be sure you know what you do, if you call such methods from within
+an @EVAL line.
 
 When -comment is used with '#' as a parameter, Vpp doesn't 
 skip lines beginning with '#'. In this case, there's no comment possible.
@@ -88,14 +114,47 @@ Line ending with \ are concatenated with the following line.
 
 =head2 Variables substitution
 
-You can specify in your text varaibles beginning with $ (like in perl,
-but may be changed with the -prefix option.
-These variables can be set either by the -var option or by the 
-"eval" capability of Vpp (See below).
+You can specify in your text variables beginning with $ (like in perl,
+but may be changed with the -prefix option) and optionally ending
+in a Suffix which can be specified by the -suffix option.
+These variables can be set either by the -var option, the -varFile option or
+by the "eval" capability of Vpp (See below).
+
+To use more complicated variables like hash or array accesses you have to
+use either the 'in-line eval' above or a cheaper and more convenient
+method. For that you can 'QUOTE' lines like
+@QUOTE
+any lines
+@ENDQUOTE
+
+or
+@QUOTE ( ListPrefix [,ListSeparator] )
+any lines
+@ENDQUOTE
+
+In both cases the lines after the '@QUOTE' line upto but not including
+the @ENDQUOTE line are concatenated still keeping the end-of-line character(s).
+In the resulting string all '$' are protected unless $prefix or $suffix
+or $ListPrefix contains a '$'. Furthermore all '@' are protected unless
+one of these variables contains a '@'. Then all variables (defined by 
+$prefix/$suffix) are preprocessed to make them ready for substitution lateron.
+Likewise ListPrefix (if given) is converted to '@'.
+Then this possible multiline construct is quoted by Perl's 'qq' and given
+to Perl's eval. Therefore any constructs which interpolate in a double quoted
+string, will interpolate here too, i.e. variable starting with '$' or
+'@' (unless protected, see above) and all characters escaped by '\'.
+Note the standard trick to interpolated everything within a double quoted
+string by using the anonymous array construct  "  @{[expression]}  ".
+The ListSeparator is used to locally set Perl's variable '$"' (or
+$LIST_SEPARATOR in module English.pm).
+You can take any delimiting character but not brackets of any sort
+to delimit either ListPrefix or ListSeparator .
+
+
 
 =head2 Setting variables
 
-Lines beginning by @ are "evaled" using variables defined by -var.
+Lines beginning by @ are "evaled" using variables defined by -var or -varFile.
 You can use only scalar variables. This way, you can also define variables in 
 your text which can be used later.
 
@@ -106,7 +165,7 @@ vpp understands
 @INCLUDE and @IF can be nested.
 
 @IF and @ELSIF are followed by a string which will be evaled using
-the variable you defined (either with setVar() or in the text).
+the variable you defined (either with -var or -varFile or in an @EVAL line).
 
 =head2 Loop statements
 
@@ -121,7 +180,17 @@ These may be nested.
 =head2 Inclusion
 
 vpp understands
-@INCLUDE  'Filename' or Perl-String-Expression
+@INCLUDE  'Filename' or Perl-Expression
+@INCLUDE { action => '\\', backslash => 0, file => 'add_on.001' }
+
+If the Perl-Expression is a string, it is taken as a
+filename. If it is an anonymous hash, it must have a value
+for the key 'file' and it may have values for 'action',
+'comment', 'prefix', 'suffix', 'substitute' and 'backslash'.
+If given these override the current values (only) when the
+included file is processed.
+
+Note that the file name B<must> be quoted.
 
 
 =head1 command options
@@ -130,16 +199,41 @@ vpp understands
 
 Specify variables that are used in the input file. The argument of the option
 must be written like var_name=var_value
+Don't forget to escape shell sensitive characters.
+
+=head2 -varFile FileName
+
+Specify a file (name FileName) which holds an 'external' representation of
+a hash as it is created by Perl's Data::Dumper module.
+Example:
+$People = { 'person' =E<gt> { 'nick' =E<gt> 'Larry',
+                               'name' =E<gt> 'Larry Wall',
+                               'address' =E<gt> {
+                                   'street' =E<gt> 'nirwana',
+                                   'city' =E<gt> 'Perl.Org',
+                                   'zip' =E<gt> '007'
+                               }
+                             },
+            'pumpkin' =E<gt> { 'nick' =E<gt> 'Guru',
+                               'name' =E<gt> 'Sarathy Gurusamy',
+                               'address' =E<gt> {
+                                   'state' =E<gt> 'Madison',
+                                   'zip' =E<gt> '008'
+                               }
+                             }
+          };
 
 =head2 -action 'char'
 
 Enables the user to use different char as action char. (default @)
+Don't forget to escape shell sensitive characters.
 
 Example: -action '#' will enable vpp to understand #include, #ifdef ..
 
 =head2 -comment 'char'
 
 Enables the user to use different char as comment char. (default #)
+Don't forget to escape shell sensitive characters.
 
 =head2 -nocomment
 
@@ -147,9 +241,33 @@ no comments are possible.
 
 =head2 -prefix 'char'
 
-Enables the user to use different char as prefix char. (default $)
-Note, this applies to 'variables' in the text only, all Perl
-variables in actions (@@,@EVAL,@IF,@FOREACH) still use $ as prefix character.
+Enables the user to use different char(s) as prefix char(s), i.e. variables
+in your text (only) are prefixed by that character(s) instead of the
+default '$'. If no suffix character(s) has been defined (or set to 'undef')
+variables may be specified in the form ${variable} where '$' is the
+current prefix char(s). This form is necessary, if any character which
+is allowed within a name (regexp '\w') immediately follows the variable.
+Note, that all variables in 'actions' (like @@ @EVAL @FOREACH @IF)
+must still be prefixed by '$'.
+Don't forget to escape shell sensitive characters.
+
+=head2 -suffix 'char'
+
+Enables the user to use different char(s) as suffix char(s), i.e. variables
+in your text (only) are suffixed by that character(s).
+Note, that all variables in 'actions' (like @@ @EVAL @FOREACH @IF)
+don't use this.
+Don't forget to escape shell sensitive characters.
+
+=head2 -substitute /prefix/suffix/
+
+Enables the user to specify the prefix and suffix used to mark
+a Perl expression within the text that will be replaced by its
+value. The default value is twice the 'action' char as suffix
+and prefix. Instead of '/' any other non space character
+can be used.
+Don't forget to escape shell sensitive characters.
+
 
 =head2 -ignorebs
 
@@ -167,7 +285,7 @@ ksh). Once this method is called '\' will be left as is.
 
 Dominique Dumont    Dominique_Dumont@grenoble.hp.com
 
-Copyright (c) 1996 Dominique Dumont. All rights reserved.  This
+Copyright (c) 1996-1998 Dominique Dumont. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..17\n"; }
+BEGIN { $| = 1; print "1..22\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Vpp;
 $loaded = 1;
@@ -196,6 +196,7 @@ else
 
 
 #redo the subsitute for fun
+$fin->rewind;
 $ret = $fin -> substitute() ;
 
 if ($ret)
@@ -276,11 +277,29 @@ $fin->setPrefixChar('\\');
 
 $expect = <<'EOExp';
 
-now two actions in one line === 3.14159265358979 ---  hello world  EOL
-you shouldn't see the following empty loop
-Now a loop with a 'computed' list
- expanded Forlist 1. line
- expanded Forlist 2. line
+>hello world: here is Pi: 3.14159265358979     EOL
+>> expanded Forlist 1st time
+  ----- inner loop at 1 / 1
+    +++ level 3 : 1 / 1 / 1
+    +++ level 3 : 1 / 1 / 2
+  ----- inner loop at 1 / 2
+    +++ level 3 : 1 / 2 / 1
+    +++ level 3 : 1 / 2 / 2
+  ----- inner loop at 1 / 3
+    +++ level 3 : 1 / 3 / 1
+    +++ level 3 : 1 / 3 / 2
+<<<<<<<<<<
+>> expanded Forlist 2nd time
+  ----- inner loop at 2 / 1
+    +++ level 3 : 2 / 1 / 1
+    +++ level 3 : 2 / 1 / 2
+  ----- inner loop at 2 / 2
+    +++ level 3 : 2 / 2 / 1
+    +++ level 3 : 2 / 2 / 2
+  ----- inner loop at 2 / 3
+    +++ level 3 : 2 / 3 / 1
+    +++ level 3 : 2 / 3 / 2
+<<<<<<<<<<
 EOExp
 
 $fin->setVar(Real => 1, Complex => 0);
@@ -306,6 +325,75 @@ if ($res eq $expect)
 else
   {
 	print "not ok 17\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+
+use IO::File;
+my $Input = new IO::File("text_in2.txt");
+my $Output= new IO::File(">text_in2.out");
+$fin = new Text::Vpp($Input,{ Var1 => 'first', Var2 => 'Include' });
+$expect = <<'EOExp';
+This is the first line.
+# this isn't a comment and should show up
+expanded loop (Include file) line 1 EOL
+expanded loop (Include file) line 2 EOL
+2 times 3 gives 6
+EOExp
+if ( $fin->substitute($Output) )
+     { print "ok 18\n"; }
+else { print "not ok 18\n"; print @{$fin->getErrors()}; }
+close $Input; close $Output;
+
+if ( $Input->open("text_in2.out") )
+     { print "ok 19\n"; }
+else { print "not ok 19\n"; }
+
+{ local $/; $res= <$Input>; }
+close $Input; unlink "text_in2.out";
+if ($res eq $expect)
+  {
+	print "ok 20\n";
+  }
+else
+  {
+	print "not ok 20\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+$fin = new Text::Vpp("test1_1.txt");
+$fin->setVarFromFile("test1_1.var");
+$fin->setPrefixChar('^(');  $fin->setSuffixChar(')');
+$fin->setSubstitute(['&{','}']);
+$expect = <<'EOExp';
+Here is pi : 3.14159265358979 !
+  Keep the dollar $ here
+  Guru's address is
+  Sarathy Gurusamy
+  Madison  in  Michigan or in Perl City or in elsewhere
+  008
+EOExp
+$ret = $fin -> substitute() ;
+
+if ($ret)
+  {
+	print "ok 21\n";
+  }
+else
+  {
+	print "not ok 21\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 22\n";
+  }
+else
+  {
+	print "not ok 22\n",
 	"expect\n---\n",$expect,"---\n",
 	"got   \n---\n",$res,   "---\n";
   }
