@@ -1,3 +1,7 @@
+1999-03-12  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
+
+	* Vpp.pm (processBlock): bug fix on substitute call (Thanks Helmut)
+
 1998-08-11  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
 
 	* version 1.01: Added missing txt files used for the test :-(

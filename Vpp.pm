@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /mnt/barrayar/d06/home/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.16 1998/09/30 15:53:56 domi Exp $
+# $Header: /mnt/barrayar/d06/home/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.18 1999/03/12 14:50:05 domi Exp $
 #
 # $Source: /mnt/barrayar/d06/home/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.16 $
+# $Revision: 1.18 $
 # $Locker:  $
 # 
 ############################################################
@@ -18,7 +18,7 @@ use Carp ;
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = '1.1';
+$VERSION = '1.11';
 
 # tiny FiFo "package"
 
@@ -420,7 +420,8 @@ sub processBlock
                 else
                   { 
                     $newFile =  Text::Vpp-> new ($Incl, $self->{var},
-                                                 $action,$comment,$prefix,$backslash) ;
+				                 $action,$comment,$prefix,$suffix,
+                                                 $substitute,$backslash) ;
                   }
 
                 if ($newFile->substitute())
@@ -1062,7 +1063,7 @@ called more than once for the same Vpp-object.
 
 Dominique Dumont    Dominique_Dumont@grenoble.hp.com
 
-Copyright (c) 1996-1998 Dominique Dumont. All rights reserved.  This
+Copyright (c) 1996-1999 Dominique Dumont. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

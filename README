@@ -43,6 +43,10 @@ Comments and suggestions are always welcome.
 Finally, I'd like to thank Helmut Jarausch for his bug report and the
 numerous patches he provided (including the 'foreach' feature).
 
+Copyright (c) 1996-1999 Dominique Dumont. All rights reserved.  This
+program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
  - Dominique Dumont
    dominique_dumont@grenoble.hp.com
 
@@ -54,10 +58,4 @@ INSTALLATION
    	 perl Makefile.PL
    	 make test
    	 make install
-
-
-
-
-
-
 
