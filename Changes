@@ -1,3 +1,7 @@
+2000-07-12  Dominique Dumont  <domi@ISPSERV.grenoble.hp.com>
+
+	* Vpp.pm v1.12 : added inline subroutine (Tx to Helmut)
+
 1999-03-12  Dominique Dumont  <domi@barrayar.grenoble.hp.com>
 
 	* Vpp.pm (processBlock): bug fix on substitute call (Thanks Helmut)

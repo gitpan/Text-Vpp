@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /mnt/barrayar/d06/home/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.18 1999/03/12 14:50:05 domi Exp $
+# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.20 2000/07/12 11:42:42 domi Exp $
 #
-# $Source: /mnt/barrayar/d06/home/domi/Tools/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.18 $
+# $Source: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v $
+# $Revision: 1.20 $
 # $Locker:  $
 # 
 ############################################################
@@ -18,7 +18,7 @@ use Carp ;
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = '1.11';
+$VERSION = '1.12' ;
 
 # tiny FiFo "package"
 
@@ -190,6 +190,12 @@ sub getErrors
     return $self->{errorText} ;
   }
 
+my $Put_Output_Sub;
+
+sub Vpp_Out { 
+  &$Put_Output_Sub;
+}
+
 sub processBlock 
   {
 	# three parameters :
@@ -200,6 +206,8 @@ sub processBlock
     my $FiFo      = $self->{Fifo};
     
     my $out = [] ;
+    my $Put_Output_Sub_Save;
+    $Put_Output_Sub= sub { push @$out,@_; };
     
     # Done is used to evaluate the elsif
     my ($done) = $expand ;
@@ -210,6 +218,10 @@ sub processBlock
     my ($line,$keep,$SubsIt) ;
     local $/ = "\n";            # revert to standard line ending
     
+    my $Within_Perl_Input = 0;
+    my $Perl_Input_Termination;
+    my $Perl_Code;
+        
     # attention: keep the following declaration in sync with
     #            the assignments whence processing 'EVAL' line
     my $action    = $self->{action} ;
@@ -233,6 +245,7 @@ sub processBlock
     my $subsLeadPat= $self->{subsLeadPat};
     my $foreachPat = $self->{foreachPat};
     my $endforPat  = $self->{endforPat};
+    my $perlPat    = $self->{perlPat};
     
     if ( $useFiFo )
       { 
@@ -246,6 +259,20 @@ sub processBlock
     
     while (defined($line)) 
       {
+        if ( $Within_Perl_Input ) {
+          if ( $line =~ /$Perl_Input_Termination/ ) {
+            $Within_Perl_Input= 0;
+            if ( $expand ) {
+              eval($Perl_Code);
+              die "Error in eval(uating) PERL code : $@ \n",
+                "in file: $self->{name} line $.\n",
+                "code was\n$Perl_Code"  if  $@;
+            }
+          } else {
+            $Perl_Code.= $line;
+          }
+          next;
+        }
         chomp($line);
         #skip commented lines
         next if (defined $commentPat and $line =~ $commentPat);
@@ -276,8 +303,10 @@ sub processBlock
             # don't evaluate the boolean expression if  ! $expand
             my ($expandLoc) = $expand && $self->myExpression($lineIn) ;
             my $Current_IF_Level = $self->{IF_Level}++;
+            $Put_Output_Sub_Save= $Put_Output_Sub;
             push @$out, 
             @{$self->processBlock($expand,$expandLoc,0,$useFiFo,$ScanOnly)};
+            $Put_Output_Sub= $Put_Output_Sub_Save;
             if ( $self->{IF_Level} != $Current_IF_Level )
               { 
                 $self->snitch("illegal nesting of FOREACH and IF"); return [];}
@@ -340,7 +369,9 @@ sub processBlock
                       { 
                         F_reset($FiFo);
                         $self->{FOR_Level}++;
+                        $Put_Output_Sub_Save= $Put_Output_Sub;
                         $self->processBlock(0,0,1,0,1); # Scan Only
+                        $Put_Output_Sub= $Put_Output_Sub_Save;
                         if ( $Current_FOR_Level != $self->{FOR_Level} )
                           { 
                             $self->snitch("illegal nesting for IF and FOREACH"); 
@@ -355,7 +386,9 @@ sub processBlock
                         $self->{var}{$LoopVar}= $LpVar;
                         $self->{FOR_Level}++;
                         F_seek($FiFo,$Start_of_Loop);
+                        $Put_Output_Sub= $Put_Output_Sub_Save;
                         push @$out, @{$self->processBlock(1,1,1,1,0)} ;
+                        $Put_Output_Sub= $Put_Output_Sub_Save;
                         if ( $Current_FOR_Level != $self->{FOR_Level} )
                           { 
                             $self->snitch("illegal nesting for IF and FOREACH"); 
@@ -370,12 +403,16 @@ sub processBlock
                 if ( $self->{FOR_Level} == 0 )
                   { 
                     $self->{FOR_Level}++;
+                    $Put_Output_Sub_Save= $Put_Output_Sub;
                     $self->processBlock(0,0,1,0,0); # just skip
+                    $Put_Output_Sub= $Put_Output_Sub_Save;
                   }
                 else
                   { 
                     $self->{FOR_Level}++;
+                    $Put_Output_Sub_Save= $Put_Output_Sub;
                     $self->processBlock(0,0,1,$useFiFo,$ScanOnly); # process but don't expand
+                    $Put_Output_Sub= $Put_Output_Sub_Save;
                   }
                 if ( $Current_FOR_Level != $self->{FOR_Level} )
                   { 
@@ -468,6 +505,13 @@ sub processBlock
             $subsLeadPat= $self->{subsLeadPat};
             $foreachPat = $self->{foreachPat};
             $endforPat  = $self->{endforPat};
+            $perlPat    = $self->{perlPat};
+          }
+        elsif ($lineIn =~ s/$perlPat//)
+          {  $Within_Perl_Input= 1;
+             $Perl_Code= "";
+             $lineIn =~ s/\s*$//;
+             $Perl_Input_Termination= qr/$lineIn/;
           }
         elsif ( $lineIn =~ /$quotePat/ )
           { 
@@ -734,6 +778,49 @@ simpler ideas in the future to implement the same functionnality (hint:
 all other ideas are welcome). So the interface or the feature itself
 may be changed. Contact Helmut for further discussions.
 
+=head2 Output generation by Perl code
+
+For complex generation of output one can specify one or more Perl
+subroutines which can be called from within an @EVAL statement.
+To specify the Perl code you say
+
+ @PERL  <<  Termination_Regexp
+ any perl source lines not matching 'Termination_Regexp'
+ termination line matching 'Termination_Regexp'
+
+Note, that any output B<must> use the predefined
+Perl sub C<Vpp_Out>. Note, that the subroutine names
+should be I<unique> even across included files.
+Here is an example which generates constants for a
+C-program which amount to the probability that you
+draw a specified sequence out of a set.
+
+ @PERL << ^END_OF_PERL$
+ sub Chances($$) {
+   my ($nseq,$num) = @_;
+   # compute the chance to draw a sequence of nseq specific balls
+   # out of num balls.
+   my $chance;
+   if ( $nseq > $num ) {
+     $chance= 0;
+   } else {
+     $chance= 1;
+     for (my $k=1; $k <= $nseq; $k++) {
+       $chance*= $k/($num-$k);
+     }
+   }
+   Vpp_Out("const double chance_${nseq}_of_$num = $chance;");
+ }
+ END_OF_PERL
+
+This produces no output by itself. Lateron you can use it as
+
+ @EVAL &Chances(7,49)
+
+to produce the C-statement
+
+ const double chance_7_of_49 = 1.35815917929809e-08;
+
 =cut
 
 #'
@@ -927,6 +1014,7 @@ sub setActionChar
     $self->{endquotePat} 	= qr/^\Q$action\Eendquote\s*/i;
     $self->{foreachPat} 	= qr/^\s*\Q$action\Eforeach(?=\W)\s*/i;
     $self->{endforPat} 	= qr/^\s*\Q$action\Eendfor\s*/i;
+    $self->{perlPat}        = qr/^\s*\Q$action\Eperl\s+<<\s*/i;
     $self->{actionPat} 	= qr/^\s*\Q$action\E\w/; # unknown action
     $self->setSubstitute(undef)  unless defined $self->{substitute}
   }
@@ -1063,7 +1151,7 @@ called more than once for the same Vpp-object.
 
 Dominique Dumont    Dominique_Dumont@grenoble.hp.com
 
-Copyright (c) 1996-1999 Dominique Dumont. All rights reserved.  This
+Copyright (c) 1996-2000 Dominique Dumont. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

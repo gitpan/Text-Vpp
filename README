@@ -3,8 +3,9 @@ pre-processor.
 
 You may find this module useful if you want to preprocess text. 
 
-Vpp can handle conditional text, loop, and variable substitutions in
-the text.
+Vpp can handle conditional text, loop, variable substitutions in the
+text.  Advanced users may also include inline perl code , inline
+subroutines in the text.
 
 In other words, Vpp understands if, else, elsif, endif, include,
 foreach and variables such as $foo and $bar. (See the test files in
@@ -17,7 +18,7 @@ The product of the substitution may be written directly on a file or
 loaded in the user's program for further manipulations.
 
 You might want to use Text::Vpp instead of cpp if :
-- you use the '#' in your file as a comment charecter
+- you use the '#' in your file as a comment character
 - are tired of angular #ifdef and prefer round shapes such as @ifdef
 - want to keep /* ... */ in your file
 - cpp doesn't like your text.
@@ -34,7 +35,7 @@ your perl program instead of spawning another process.
 
 This module is in 'Release' state
 
-This module was written now requires perl5.005.
+This module requires perl5.005.
 
 See the embedded documentation in the module for more details.
 
@@ -43,7 +44,7 @@ Comments and suggestions are always welcome.
 Finally, I'd like to thank Helmut Jarausch for his bug report and the
 numerous patches he provided (including the 'foreach' feature).
 
-Copyright (c) 1996-1999 Dominique Dumont. All rights reserved.  This
+Copyright (c) 1996-2000 Dominique Dumont. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

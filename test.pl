@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..22\n"; }
+BEGIN { $| = 1; print "1..24\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Vpp;
 $loaded = 1;
@@ -394,6 +394,46 @@ if ($res eq $expect)
 else
   {
 	print "not ok 22\n",
+	"expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
+  }
+
+#-----------------------------------------
+
+$fin = new Text::Vpp("perlprog.txt");
+$expect = <<'EOExp';
+This is the first normal line
+This is the second normal line
+Hello world - Here I am
+and here on the next line
+This is the third normal line
+double chance_7_of_49 = 1.35815917929809e-08;
+This is the fourth normal line
+double chance_6_of_16 = 0.0001998001998002;
+This is the last line
+EOExp
+
+$ret = $fin -> substitute() ;
+
+if ($ret)
+  {
+	print "ok 23\n";
+  }
+else
+  {
+	print "not ok 23\n";
+	print @{$fin->getErrors()} ;
+  }
+
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+	print "ok 24\n";
+  }
+else
+  {
+	print "not ok 24\n",
 	"expect\n---\n",$expect,"---\n",
 	"got   \n---\n",$res,   "---\n";
   }
