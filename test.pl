@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..26\n"; }
+BEGIN { $| = 1; print "1..28\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Vpp;
 use Config;
@@ -488,4 +488,42 @@ if ($Config{osname} ne 'win32')
 else
   {
     print "skip 25\nskip 26\n";
+  }
+
+# test include mixed with eval
+$expect='
+de:\usepackage[german]{babel}:en:\usepackage[english]{babel}
+
+Some included text
+
+We shoud see this line from included file
+
+  {\Large \bf
+de:Produkte \& Services:en:Products \& Services
+\\\\\medskip
+';
+
+$fin = new Text::Vpp("text_eval_include.txt");
+$fin->setVar('var1' => 1);
+$ret = $fin -> substitute() ;
+if ($ret)
+  {
+    print "ok 27\n";
+  }
+else
+  {
+    print "not ok 27\n";
+    print @{$fin->getErrors()} ;
+  }
+$res = join("\n",@{$fin->getText()})."\n" ;
+
+if ($res eq $expect)
+  {
+    print "ok 28\n";
+  }
+else
+  {
+    print "not ok 28\n",
+      "expect\n---\n",$expect,"---\n",
+	"got   \n---\n",$res,   "---\n";
   }

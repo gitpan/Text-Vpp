@@ -1,9 +1,9 @@
 ############################################################
 #
-# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.26 2001/05/11 12:10:34 domi Exp $
+# $Header: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v 1.27 2005/06/09 13:52:13 domi Exp $
 #
 # $Source: /home/domi/perlDev/Text_Vpp/RCS/Vpp.pm,v $
-# $Revision: 1.26 $
+# $Revision: 1.27 $
 # $Locker:  $
 # 
 ############################################################
@@ -18,7 +18,7 @@ use Carp ;
 
 use AutoLoader qw/AUTOLOAD/ ;
 
-$VERSION = '1.16' ;
+$VERSION = '1.17' ;
 
 # tiny FiFo "package"
 
@@ -89,14 +89,17 @@ sub myEval
   {
     my $self = shift ;
     my $expression = shift ;
-    
+    my $out = shift ;
+
     # transform each $xxx into $self->{var}{$xxx}
     # this allows for the creation of new variables
     # one may use the construction ${\w} to protect against this
     $expression =~ s[\$(\w+)\b] [\$self->{var}{$1}]g ;
-	
+
+    local *Vpp_Out= ref $out ? sub{push @$out,@_;} : 
+      sub {die "Cannot call Vpp_Out in \@INCLUDE line";} ;
     my $return = eval($expression) ;
-	
+
     if ($@ ne "") 
       {
         die "Error in eval : $@ \n",
@@ -148,7 +151,9 @@ sub substitute
     $self->{IF_Level}= 0;  $self->{FOR_Level}= 0;
     
     my $res = $self->processBlock(1,1,0,0,0) ;
-    
+
+    chomp @$res ;
+
     if (defined $fileOut)
       { 
         if ( UNIVERSAL::can($fileOut,'print') )
@@ -190,13 +195,7 @@ sub getErrors
     return $self->{errorText} ;
   }
 
-my $Put_Output_Sub;
-
-sub Vpp_Out { 
-  &$Put_Output_Sub;
-}
-
-our $VAR;
+sub Vpp_Out {croak "Original Vpp_Out called";}
 
 sub do_shell
   {
@@ -206,7 +205,7 @@ sub do_shell
     warn "Error in SHELL code : status is $? \n",
       "in file: $self->{name} line $.\n",
         "code was\n$shell_code"  if  $? > 0;
-    Vpp_Out($out) ;
+    split(/\n/,$out) ;
   }
 
 sub processBlock 
@@ -219,8 +218,6 @@ sub processBlock
     my $FiFo      = $self->{Fifo};
     
     my $out = [] ;
-    my $Put_Output_Sub_Save;
-    $Put_Output_Sub= sub { my @a = @_; chomp @a ; push @$out,@a; };
     
     # Done is used to evaluate the elsif
     my ($done) = $expand ;
@@ -264,8 +261,7 @@ sub processBlock
     my $endforPat  = $self->{endforPat};
     my $perlPat    = $self->{perlPat};
     my $shellPat  = $self->{shellPat};
-       $VAR        = $self->{var};
-    
+
     if ( $useFiFo )
       { 
         $line= F_getline($FiFo); 
@@ -282,7 +278,10 @@ sub processBlock
           if ( $line =~ /$Perl_Input_Termination/ ) {
             $Within_Perl_Input= 0;
             if ( $expand ) {
-              eval($Perl_Code);
+	      # $VAR may be used in eval'ed code
+	      my $VAR = $self->{var} ;
+	      local *Vpp_Out= sub {push @$out, @_; };
+              my $res = eval($Perl_Code);
               die "Error in eval(uating) PERL code : $@ \n",
                 "in file: $self->{name} line $.\n",
                 "code was\n$Perl_Code"  if  $@;
@@ -296,7 +295,7 @@ sub processBlock
         if ( $Within_Shell_Input ) {
           if ( $line =~ /$Shell_Input_Termination/ ) {
             $Within_Shell_Input= 0;
-            $self->do_shell($Shell_Code) if ( $expand );
+            push (@$out, $self->do_shell($Shell_Code)) if ( $expand );
           } else {
             $Shell_Code.= $line;
           }
@@ -333,13 +332,13 @@ sub processBlock
             # don't evaluate the boolean expression if  ! $expand
             my ($expandLoc) = $expand && $self->myExpression($lineIn) ;
             my $Current_IF_Level = $self->{IF_Level}++;
-            $Put_Output_Sub_Save= $Put_Output_Sub;
             push @$out, 
             @{$self->processBlock($expand,$expandLoc,0,$useFiFo,$ScanOnly)};
-            $Put_Output_Sub= $Put_Output_Sub_Save;
+
             if ( $self->{IF_Level} != $Current_IF_Level )
               { 
-                $self->snitch("illegal nesting of FOREACH and IF"); return [];}
+                $self->snitch("illegal nesting of FOREACH and IF"); return [];
+	      }
           }
         elsif ($lineIn =~ s/$elsifPat//) 
           {
@@ -382,8 +381,9 @@ sub processBlock
               { 
                 my $LoopExpr = $lineIn;
                 $LoopExpr =~ s/^\s*my\s//;  # remove my if there
-                my $LoopVar= $1 if $LoopExpr =~ s/\$(\w+)//;
-                      
+                my $LoopVar ;
+		$LoopVar = $1 if $LoopExpr =~ s/\$(\w+)//;
+
                 $self->ReplaceVars($LoopExpr);
                 my @LoopList= eval $LoopExpr;
                 if ( $@ ) 
@@ -392,16 +392,14 @@ sub processBlock
                     "line : $lineIn\nfile: $self->{name} line $.\n";
                   }
                 $emptyLoop= scalar(@LoopList) == 0;
-                
+
                 unless ($emptyLoop)
                   { 
                     if ( $self->{FOR_Level} == 0 )
                       { 
                         F_reset($FiFo);
                         $self->{FOR_Level}++;
-                        $Put_Output_Sub_Save= $Put_Output_Sub;
                         $self->processBlock(0,0,1,0,1); # Scan Only
-                        $Put_Output_Sub= $Put_Output_Sub_Save;
                         if ( $Current_FOR_Level != $self->{FOR_Level} )
                           { 
                             $self->snitch("illegal nesting for IF and FOREACH"); 
@@ -416,9 +414,9 @@ sub processBlock
                         $self->{var}{$LoopVar}= $LpVar;
                         $self->{FOR_Level}++;
                         F_seek($FiFo,$Start_of_Loop);
-                        $Put_Output_Sub= $Put_Output_Sub_Save;
+
                         push @$out, @{$self->processBlock(1,1,1,1,0)} ;
-                        $Put_Output_Sub= $Put_Output_Sub_Save;
+
                         if ( $Current_FOR_Level != $self->{FOR_Level} )
                           { 
                             $self->snitch("illegal nesting for IF and FOREACH"); 
@@ -427,22 +425,18 @@ sub processBlock
                       }
                   }
               }
-                    
+
             if ($emptyLoop) # loop has never been executed
               { 
                 if ( $self->{FOR_Level} == 0 )
                   { 
                     $self->{FOR_Level}++;
-                    $Put_Output_Sub_Save= $Put_Output_Sub;
                     $self->processBlock(0,0,1,0,0); # just skip
-                    $Put_Output_Sub= $Put_Output_Sub_Save;
                   }
                 else
                   { 
                     $self->{FOR_Level}++;
-                    $Put_Output_Sub_Save= $Put_Output_Sub;
                     $self->processBlock(0,0,1,$useFiFo,$ScanOnly); # process but don't expand
-                    $Put_Output_Sub= $Put_Output_Sub_Save;
                   }
                 if ( $Current_FOR_Level != $self->{FOR_Level} )
                   { 
@@ -507,8 +501,8 @@ sub processBlock
               }
           }
         elsif ($lineIn =~ s/$evalPat//)
-          { 
-            if ( $expand ) { $self->myEval($lineIn); }
+          {
+            if ( $expand ) {$self->myEval($lineIn, $out);}
 
             # reassign in case there was a change to some
             # of the following
@@ -536,8 +530,7 @@ sub processBlock
             $foreachPat = $self->{foreachPat};
             $endforPat  = $self->{endforPat};
             $perlPat    = $self->{perlPat};
-            $shellPat  = $self->{shellPat};
-            $VAR        = $self->{var};
+            $shellPat   = $self->{shellPat};
           }
         elsif ($lineIn =~ s/$perlPat//)
           {  $Within_Perl_Input= 1;
@@ -556,7 +549,7 @@ sub processBlock
               }
             else
               {
-                $self->do_shell($lineIn);
+                push @$out, $self->do_shell($lineIn);
               }
           }
         elsif ( $lineIn =~ /$quotePat/ )

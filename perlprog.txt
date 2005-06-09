@@ -25,6 +25,11 @@ This is the first normal line
     return "our $Subject is $$VAR{$Subject}";
   }
   
+  sub WhoIs($) {
+    my $Subject = $_[0];
+    return "our $Subject is $$VAR{$Subject}";
+  }
+  
 END_OF_PERL
 This is the second normal line
 @EVAL &Hello

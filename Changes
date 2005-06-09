@@ -1,3 +1,9 @@
+2005-06-09  Dominique Dumont  <domi@komarr.grenoble.hp.com> 1.17
+
+	* Vpp.pm (myEval): cleaned up handling of eval output (no longer
+	use $Put_Output_Sub global variable). Bug reported by Richard
+	Jelinek.
+
 2001-05-11  Dominique Dumont  <domi@komarr.grenoble.hp.com>
 
 	* Vpp.pm: added require 5.6.0
